@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.env
+*.env
+*.png
+.vscode/
+crypto/  # if this is your venv folder.env
+.env
