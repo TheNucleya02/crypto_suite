@@ -72,7 +72,7 @@ def price_tool(symbol: str) -> str:
     df.index = pd.to_datetime(df.index)
     df = df.sort_index(ascending=False)
     text_output = [
-        f"{date.strftime('%Y-%m-%d')} - {row['price']:.2f}"
+        f"{date} - {row['price']:.2f}"
         for date, row in df.head(30).iterrows()
     ]
     return "\n".join(text_output)
@@ -123,29 +123,29 @@ price_analyst = Agent(
 
 writer = Agent(
     role="Cryptocurrency Report Writer",
-    goal="Write 1 paragraph report of the Specific cryptocurrency market Provided by User.",
-    backstory="""You're widely accepted as the best cryptocurrency analyst that
-understands the market and have tracked every asset for more than 10 years. Your trends
-analysis are always extremely accurate.
+    goal=("Write 1 paragraph report of the Specific cryptocurrency market Provided by User."),
+    backstory=("""You're widely accepted as the best cryptocurrency analyst that
+    understands the market and have tracked every asset for more than 10 years. Your trends
+    analysis are always extremely accurate.
 
-You're also master level analyst in the traditional markets and have deep understanding
-of human psychology. You understand macro factors and combine those multiple
-theories - e.g. cycle theory. You're able to hold multiple opinions when analysing anything.
-You understand news and historical prices, but you look at those with a
-healthy dose of skepticism. You also consider the source of news articles.
+    You're also master level analyst in the traditional markets and have deep understanding
+    of human psychology. You understand macro factors and combine those multiple
+    theories - e.g. cycle theory. You're able to hold multiple opinions when analysing anything.
+    You understand news and historical prices, but you look at those with a
+    healthy dose of skepticism. You also consider the source of news articles.
 
-Your most well developed talent is providing clear and concise summarization
-that explains very complex market topics in simple to understand terms.
+    Your most well developed talent is providing clear and concise summarization
+    that explains very complex market topics in simple to understand terms.
 
-Some of your writing techniques include:
-- Creating a bullet list (executive summary) of the most important points
-- Distill complex analyses to their most important parts
+    Some of your writing techniques include:
+    - Creating a bullet list (executive summary) of the most important points
+    - Distill complex analyses to their most important parts
 
-You writing transforms even dry and most technical texts into a pleasant and interesting read.""",
+    You writing transforms even dry and most technical texts into a pleasant and interesting read."""),
     llm=llm,
     verbose=True,
     max_iter=5,
-    memory=True,
+    memory=True, # type: ignore
     inject_date=True,
     allow_delegation=False,
 )
@@ -187,7 +187,7 @@ def plot_market_graph(symbol):
     try:
         ticker = symbol.upper() + "-USD" if not symbol.endswith("USD") else symbol
         data = yf.download(ticker, period="7d", interval="1h", auto_adjust=True)
-        if data.empty:
+        if data is None or data.empty:
             return None, f"❌ No data found for {symbol}"
         plt.figure(figsize=(10, 5))
         plt.plot(data['Close'], label=f"{symbol.upper()} Price", color='skyblue')
@@ -202,3 +202,4 @@ def plot_market_graph(symbol):
         return img_path, None
     except Exception as e:
         return None, f"⚠️ Error generating chart: {e}"
+
