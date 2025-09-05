@@ -9,12 +9,23 @@ import yfinance as yf
 import matplotlib.pyplot as plt
 from dotenv import load_dotenv
 import os
+from fastapi import FastAPI
+from pydantic import BaseModel
+import requests
+from requests.exceptions import ConnectionError, Timeout, TooManyRedirects
+
+app = FastAPI()
 
 load_dotenv()
 EXA = os.getenv("EXA_API")
 GEMINI = os.getenv("GEMINI_API")
 ALPHA = os.getenv("ALPHA_API")
+CMC = os.getenv("CMC_API")
 exa = Exa(EXA)
+
+# --- pydantic class ---
+class ticker(BaseModel):
+    ticker: str
 
 # --- News Tool ---
 @tool("search_tool")
@@ -77,6 +88,43 @@ def price_tool(symbol: str) -> str:
     ]
     return "\n".join(text_output)
 
+# --- fear and greed index ---
+@tool("fear_and_greed")
+def fear_and_greed_tool():
+    '''a powerful tool that analyzes market sentiment to help you make informed crypto investment decisions'''
+
+    url = 'https://pro-api.coinmarketcap.com/v3/fear-and-greed/historical'
+    parameters = {
+        'start': '1',
+        'limit': '10',
+    }
+    headers = {
+        'Accepts': 'application/json',
+        'X-CMC_PRO_API_KEY': 'c0fddc48-b2f0-4d24-85c8-f61fdc333f5e'
+    }
+
+    try:
+        response = requests.get(url, params=parameters, headers=headers)
+        data = response.json()
+        index = data.get('data')
+        fear_and_greed_list = []
+        if index:
+            for item in index:
+                fear_and_greed = {
+                    'value': item.get('value'),
+                    'value_classification': item.get('value_classification')
+                }
+                fear_and_greed_list.append(fear_and_greed)
+            output = [
+            f"Value: {fear_and_greed['value']}\nValue_classificationL: {fear_and_greed['value_classification']}\n"
+            for fear_and_greed in fear_and_greed_list
+            ]
+            return "\n".join(output)
+        else:
+            return "No results found."
+    except (ConnectionError, Timeout, TooManyRedirects) as e:
+        print(e)
+
 # --- LLM Model ---
 llm = LLM(
     model="gemini/gemini-2.0-flash",
@@ -121,6 +169,23 @@ price_analyst = Agent(
     tools=[price_tool],
 )
 
+fear_and_greed_analyst = Agent(
+    role="Cryptocurrency Fear and greed analyst",
+    goal=("Your goal is to analyzes market sentiment and show Crypto Fear and Greed Index to enhance user decision making."),
+    backstory=(
+        "You're an expert analyst of trends based on real time market analysis "
+        "You specialize into technical analysis based on historical prices."
+    ),
+    verbose=True,
+    allow_delegation=False,
+    llm=llm,
+    max_iter=5,
+    memory=True,  # type: ignore
+    inject_date=True,
+    respect_context_window=True,
+    tools=[fear_and_greed_tool],
+)
+
 writer = Agent(
     role="Cryptocurrency Report Writer",
     goal=("Write 1 paragraph report of the Specific cryptocurrency market Provided by User."),
@@ -150,7 +215,9 @@ writer = Agent(
     allow_delegation=False,
 )
 
-def final_summary(symbol: str) -> str:
+@app.post("/summary/")
+def final_summary(ticker: ticker) -> str:
+    symbol = ticker.ticker
     get_news_analysis = Task(
         description=f"Use the search tool to get news for the {symbol} cryptocurrency. The current date is {datetime.now()}. Compose the results into a helpful report",
         expected_output="Create 1 paragraph report for the cryptocurrency, along with a prediction for the future trend.",
@@ -161,15 +228,20 @@ def final_summary(symbol: str) -> str:
         expected_output="Create 1 paragraph summary for the cryptocurrency, along with a prediction for the future trend.",
         agent=price_analyst,
     )
+    get_fear_and_greed_index = Task(
+        description="Use the fear and greed tool to find the index value and classification of fear and greed. The current date is {datetime.now()}. Compose the results into a helpful report ",
+        expected_output="Create 1 paragraph summary for the fear and greed index, along with a prediction for the future trend.",
+        agent = fear_and_greed_analyst
+    )
     write_report = Task(
         description="Use the reports from the news analyst and the price analyst to create a report that summarizes the cryptocurrency.",
-        expected_output="1 paragraph report that summarizes the market and predicts the future prices (trend) for the cryptocurrency.",
+        expected_output="1 paragraph report that summarizes the market and predicts the future prices (trend) for the cryptocurrency. Also mention the summary report of fear and greed analysis.",
         agent=writer,
-        context=[get_news_analysis, get_price_analysis],
+        context=[get_news_analysis, get_price_analysis, get_fear_and_greed_index],
     )
     crew = Crew(
-        agents=[news_analyst, price_analyst, writer],
-        tasks=[get_news_analysis, get_price_analysis, write_report],
+        agents=[news_analyst, price_analyst, fear_and_greed_analyst, writer],
+        tasks=[get_news_analysis, get_price_analysis, get_fear_and_greed_index, write_report],
         verbose=False,
         process=Process.sequential,
         share_crew=False,
@@ -182,24 +254,3 @@ def final_summary(symbol: str) -> str:
         return str(results)
     except Exception as e:
         return f"❌ Error generating summary for {symbol}: {e}"
-
-def plot_market_graph(symbol):
-    try:
-        ticker = symbol.upper() + "-USD" if not symbol.endswith("USD") else symbol
-        data = yf.download(ticker, period="7d", interval="1h", auto_adjust=True)
-        if data is None or data.empty:
-            return None, f"❌ No data found for {symbol}"
-        plt.figure(figsize=(10, 5))
-        plt.plot(data['Close'], label=f"{symbol.upper()} Price", color='skyblue')
-        plt.title(f"{symbol.upper()} - Market Price (7d)")
-        plt.xlabel("Date")
-        plt.ylabel("Price in USD")
-        plt.legend()
-        plt.grid(True)
-        img_path = f"{symbol}_chart.png"
-        plt.savefig(img_path)
-        plt.close()
-        return img_path, None
-    except Exception as e:
-        return None, f"⚠️ Error generating chart: {e}"
-

@@ -2,3 +2,6 @@ pandas
 numpy
 crewai[tools]
 exa-py
+fastapi
+uvicorn
+yfinance
