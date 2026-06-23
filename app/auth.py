@@ -11,12 +11,12 @@ from . import crud
 import os
 
 # Configuration
-SECRET_KEY = os.getenv("SECRET")
+SECRET_KEY = os.getenv("SECRET") or "local-development-secret"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 # Password hashing context
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
 # OAuth2 scheme
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")

@@ -1,13 +1,3 @@
-from .analysis import (
-    Task,
-    Crew,
-    Process,
-    news_analyst,
-    price_analyst,
-    fear_and_greed_analyst,
-    writer,
-    llm,
-)
 from .auth import (
    create_access_token, get_current_active_user,
     ACCESS_TOKEN_EXPIRE_MINUTES
@@ -92,6 +82,28 @@ async def protected_route(current_user: User = Depends(get_current_active_user))
 # Get the summay of Crypto
 @app.post("/summary/")
 def final_summary(ticker: Ticker, current_user: User = Depends(get_current_active_user)) -> str:
+    try:
+        from .analysis import (
+            Task,
+            Crew,
+            Process,
+            news_analyst,
+            price_analyst,
+            fear_and_greed_analyst,
+            writer,
+            llm,
+        )
+    except ModuleNotFoundError as exc:
+        missing_package = exc.name or "required package"
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                f"Summary generation is not available because '{missing_package}' "
+                "is not installed. Run 'pip install -r requirements.txt' and make "
+                "sure the API keys in your environment are configured."
+            ),
+        ) from exc
+
     symbol = ticker.ticker
     get_news_analysis = Task(
         description=f"Use the search tool to get news for the {symbol} cryptocurrency. The current date is {datetime.now()}. Compose the results into a helpful report",

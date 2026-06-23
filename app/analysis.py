@@ -19,7 +19,7 @@ exa = Exa(EXA)
 @tool("search_tool")
 def search_tool(symbol: str) -> str:
     """Search for the latest news and provide a summary about a given query using Exa."""
-    result = exa.search_and_contents(symbol, summary=True)
+    result = exa.search(symbol, summary=True)
     if result.results:
         news_list = []
         for item in result.results:

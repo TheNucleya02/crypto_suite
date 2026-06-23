@@ -7,4 +7,5 @@ __pycache__/
 venv/
 .envvenv/
 node_modules/
+frontend/dist/
 ./vite

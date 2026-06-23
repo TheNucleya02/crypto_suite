@@ -48,8 +48,7 @@ class PortfolioEntry(BaseModel):
     def validate_symbol(cls, v):
         return v.upper()  # Always store symbols in uppercase
 
-    class Config:
-        orm_mode = True
+    model_config = {"from_attributes": True}
 
 class PortfolioResponse(BaseModel):
     id: int
@@ -63,6 +62,3 @@ class PortfolioResponse(BaseModel):
 
 class PortfolioListResponse(BaseModel):
     portfolio: List[PortfolioResponse]
-
-class Config:
-    from_attributes = True

@@ -4,7 +4,7 @@ from .database import DBUser, DBRole
 from .models import UserCreate
 from typing import Optional
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
 def get_user_by_id(db: Session, user_id: int):
     """Get user by ID."""
