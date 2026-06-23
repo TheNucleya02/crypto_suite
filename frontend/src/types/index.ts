@@ -66,6 +66,15 @@ export interface ChatThread {
   updated_at?: string;
 }
 
+export interface AuthUser {
+  id: number;
+  username: string;
+  email: string;
+  full_name: string;
+  disabled: boolean;
+  roles: string[];
+}
+
 export interface MarketSentiment {
   value: number;
   classification: "Extreme Fear" | "Fear" | "Neutral" | "Greed" | "Extreme Greed";

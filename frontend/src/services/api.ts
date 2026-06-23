@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase";
-import type { PortfolioEntry, ChatThread, ChatMessage } from "@/types";
+import type { AuthUser, PortfolioEntry, ChatThread, ChatMessage } from "@/types";
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000").replace(/\/$/, "");
 const TOKEN_KEY = "crypto_assistant_token";
@@ -13,6 +13,10 @@ function handleList<T>(fn: () => Promise<{ data: T | null; error: unknown }>): P
 
 function getAccessToken() {
   return window.localStorage.getItem(TOKEN_KEY);
+}
+
+export function hasStoredSession() {
+  return Boolean(getAccessToken());
 }
 
 async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
@@ -31,7 +35,7 @@ async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
 }
 
 function hasBackendSession() {
-  return Boolean(getAccessToken());
+  return hasStoredSession();
 }
 
 export async function login(username: string, password: string) {
@@ -48,6 +52,23 @@ export async function login(username: string, password: string) {
   const data = (await response.json()) as { access_token: string; token_type: string };
   window.localStorage.setItem(TOKEN_KEY, data.access_token);
   return data;
+}
+
+export async function register(input: {
+  username: string;
+  email: string;
+  full_name: string;
+  password: string;
+}) {
+  return apiFetch<AuthUser>("/register", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export async function fetchCurrentUser() {
+  if (!hasStoredSession()) return null;
+  return apiFetch<AuthUser>("/users/me");
 }
 
 export function logout() {

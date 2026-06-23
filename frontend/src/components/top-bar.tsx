@@ -1,6 +1,7 @@
-import { Menu, Search } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { AuthMenu } from "@/components/auth-menu";
 
 interface TopBarProps {
   onMenu: () => void;
@@ -21,6 +22,7 @@ export function TopBar({ onMenu, title }: TopBarProps) {
       <div className="flex-1 min-w-0">
         <h1 className="text-base md:text-lg font-semibold tracking-tight truncate">{title}</h1>
       </div>
+      <AuthMenu />
       <ThemeToggle />
     </header>
   );
