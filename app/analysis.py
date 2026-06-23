@@ -202,4 +202,3 @@ writer = Agent(
     inject_date=True,
     allow_delegation=False,
 )
-

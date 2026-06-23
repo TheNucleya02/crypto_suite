@@ -5,9 +5,9 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
-from database import get_db, DBUser
-from models import User, UserInDB
-import crud
+from .database import get_db, DBUser
+from .models import User, UserInDB
+from . import crud
 import os
 
 # Configuration
