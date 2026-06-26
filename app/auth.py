@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from typing import Optional
-from passlib.context import CryptContext 
+from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
@@ -9,17 +9,29 @@ from .database import get_db, DBUser
 from .models import User, UserInDB
 from . import crud
 import os
+import warnings
 
+# ---------------------------------------------------------------------------
 # Configuration
-SECRET_KEY = os.getenv("SECRET") or "local-development-secret"
+# ---------------------------------------------------------------------------
+_DEFAULT_SECRET = "local-development-secret-do-not-use-in-production"
+SECRET_KEY = os.getenv("SECRET", _DEFAULT_SECRET)
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+if SECRET_KEY == _DEFAULT_SECRET:
+    warnings.warn(
+        "JWT SECRET is using the insecure default value. "
+        "Set the SECRET environment variable to a strong random string before deploying.",
+        stacklevel=1,
+    )
 
 # Password hashing context
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
 # OAuth2 scheme
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
 
 def convert_db_user_to_user(db_user: DBUser) -> User:
     """Convert database user to Pydantic user model."""
@@ -32,6 +44,7 @@ def convert_db_user_to_user(db_user: DBUser) -> User:
         roles=[role.name for role in db_user.roles]
     )
 
+
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     """Create a JWT access token."""
     to_encode = data.copy()
@@ -43,6 +56,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
 
 async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     """Get the current user from the JWT token."""
@@ -64,6 +78,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
     if db_user is None:
         raise credentials_exception
     return convert_db_user_to_user(db_user)
+
 
 async def get_current_active_user(current_user: User = Depends(get_current_user)):
     """Get the current active user (not disabled)."""

@@ -1,232 +1,179 @@
-# 🚀 Crypto Assistant Backend
+# Momentum Crypto Suite
 
-Your personal **AI-powered crypto assistant backend** for **market insights, news analysis, and portfolio tracking**.  
-This FastAPI backend application provides comprehensive cryptocurrency data, real-time price analysis, and portfolio management capabilities.
-
----
-
-## 📌 Project Overview
-
-The **Crypto Assistant Backend** is a robust REST API designed for **crypto traders, investors, and enthusiasts** who need:
-
-- **Real-time cryptocurrency price data** and market analysis
-- **News-based market insights** and sentiment analysis  
-- **Portfolio tracking** with profit/loss calculations
-- **AI-powered market summaries** and trading insights
-- **Secure data persistence** with SQLite database
-
-Built with modern Python technologies, this backend integrates with external APIs like **CoinGecko** for price data and various news sources for market intelligence.
+An AI-powered cryptocurrency analysis and portfolio management application. The React frontend communicates with a FastAPI backend that uses a multi-agent CrewAI system to deliver real-time market summaries, news analysis, and portfolio tracking.
 
 ---
 
-## 🎯 Target Audience
+## Features
 
-- 🧑‍💻 **Crypto Investors** seeking automated portfolio tracking and insights
-- 📈 **Day Traders** who need real-time data and news sentiment analysis
-- 🏢 **Financial Apps** requiring crypto data integration
-- 🎓 **Developers** learning FastAPI, SQLAlchemy, and API integrations
-
----
-
-## ✨ Key Features
-
-### 📈 Market Data & Analysis
-- Real-time cryptocurrency prices from CoinGecko API
-- Historical price data and trend analysis
-- Market cap, volume, and price change calculations
-- Support for 1000+ cryptocurrencies
-
-### 📰 News & Sentiment Analysis
-- Automated crypto news aggregation
-- AI-powered sentiment analysis
-- Market impact assessment
-- News-based trading signals
-
-### 💼 Portfolio Management
-- Add/remove cryptocurrency holdings
-- Real-time profit/loss calculations
-- Portfolio performance tracking
-- Investment history and analytics
-
-### 🤖 AI-Powered Insights
-- Market summary generation
-- Trend analysis and predictions
-- Personalized trading recommendations
-- Risk assessment reports
+- **Dashboard** — live portfolio value, P/L, and AI-generated market summaries
+- **Portfolio tracker** — add/remove holdings with real-time P/L via CoinGecko prices
+- **AI assistant** — multi-agent crew (news, price, fear & greed) powered by a Hugging Face LLM
+- **Market page** — live prices and sentiment indicators
+- **Auth** — JWT-based registration and login; sessions stored in `localStorage`
 
 ---
 
-## 🛠️ Technology Stack
+## Tech stack
 
-| Component | Technology |
-|-----------|------------|
-| **Framework** | [FastAPI](https://fastapi.tiangolo.com/) 0.104+ |
-| **Database** | SQLite + SQLAlchemy ORM |
-| **Data Validation** | Pydantic v2 |
-| **HTTP Client** | httpx (async requests) |
-| **External APIs** | CoinGecko API, News API |
-| **Documentation** | Auto-generated OpenAPI/Swagger |
-| **Python Version** | 3.9+ |
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React 19, TypeScript, Vite, Tailwind CSS, Radix UI, TanStack Query |
+| Backend | Python 3.12, FastAPI, SQLAlchemy, SQLite (`auth.db`) |
+| AI agents | CrewAI, LiteLLM, Hugging Face Inference |
+| External data | CoinGecko (prices), Alpha Vantage (history), CoinMarketCap (Fear & Greed), Exa (news) |
+| Optional cloud | Supabase (chat thread + cloud portfolio persistence) |
 
 ---
 
-## 📂 Project Structure
+## Project structure
 
 ```
-crypto_assistant_backend/
-├── .env.example
-├── .gitignore
-├── Analysis.py
-├── auth.db
-├── auth.py
-├── crud.py
-├── database.py
-├── LICENSE
-├── main.py
-├── models.py
-├── README.md
-├── requirements.txt
-└── setup_db.py
-
+/
+├── app/                    # FastAPI backend
+│   ├── main.py             # Routes, CORS, static-file SPA mount
+│   ├── auth.py             # JWT creation & verification
+│   ├── crud.py             # Database helpers
+│   ├── database.py         # SQLAlchemy models & SQLite engine
+│   ├── models.py           # Pydantic schemas
+│   └── analysis.py         # CrewAI agents & tools
+├── frontend/               # React + Vite app
+│   ├── src/
+│   │   ├── pages/          # Dashboard, Portfolio, Assistant, Market
+│   │   ├── components/     # Shared UI components
+│   │   ├── services/api.ts # Backend + Supabase API calls
+│   │   └── lib/supabase.ts # Optional Supabase client
+│   ├── .env.example        # Frontend environment variable template
+│   └── vite.config.ts
+├── .env.example            # Backend environment variable template
+├── requirements.txt        # Python dependencies
+└── auth.db                 # SQLite database (auto-created)
 ```
 
 ---
 
-## ⚡ Quick Start
+## Quick start (local development)
 
 ### Prerequisites
-- Python 3.9 or higher
-- pip (Python package manager)
-- Git
 
-### 1. Clone the Repository
+- Python 3.12+
+- Node.js 20+
+- pip
+
+### 1. Clone and install
+
 ```bash
-git clone https://github.com/your-username/crypto-assistant-backend.git
-cd crypto-assistant-backend
-```
+git clone <repo-url>
+cd momentum-crypto-suite
 
-### 2. Create Virtual Environment
-```bash
-# Create virtual environment
-python -m venv venv
-
-# Activate virtual environment
-source venv/bin/activate     # On Linux/macOS
-# or
-venv\Scripts\activate        # On Windows
-```
-
-### 3. Install Dependencies
-```bash
+# Backend dependencies
 pip install -r requirements.txt
+
+# Frontend dependencies
+cd frontend && npm install && cd ..
 ```
 
-### 4. Environment Configuration
+### 2. Configure environment variables
+
 ```bash
-# Copy environment template
+# Backend
 cp .env.example .env
+# Edit .env — fill in SECRET and any API keys you want to enable
 
-# Edit .env file with your API keys
-nano .env
+# Frontend
+cp frontend/.env.example frontend/.env
+# Edit frontend/.env — set VITE_API_BASE_URL=http://localhost:8000
 ```
 
-### 5. Run the Application
+See [Environment variables](#environment-variables) below for details on each variable.
+
+### 3. Run
+
+Open two terminals:
+
 ```bash
-# Start development server
+# Terminal 1 — backend (port 8000)
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+# Terminal 2 — frontend dev server (port 5000)
+cd frontend && npm run dev
 ```
 
-### 6. Access the API
+Open `http://localhost:5000` in your browser.
 
-- Swagger UI: http://localhost:8000/docs
-- ReDoc: http://localhost:8000/redoc
----
-## 📸 Screenshot
-<img width="1028" height="652" alt="Screenshot 2025-09-10 at 5 36 53 PM" src="https://github.com/user-attachments/assets/7fe2bd4d-1a07-45f7-9bd5-60519603f705" />
+Interactive API docs are available at `http://localhost:8000/docs`.
 
 ---
 
-## 🔧 Configuration
+## Environment variables
 
-### Environment Variables
+### Backend — `.env`
 
-Create a `.env` file in the project root:
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `SECRET` | **Yes (prod)** | Secret key for signing JWT tokens. Generate with `python -c "import secrets; print(secrets.token_hex(32))"`. Defaults to an insecure placeholder in dev. |
+| `HF_TOKEN` | For AI summary | Hugging Face access token — [create one here](https://huggingface.co/settings/tokens). |
+| `HF_MODEL` | No | Hugging Face model path. Defaults to `huggingface/meta-llama/Llama-3.1-8B-Instruct`. |
+| `EXA_API` | For AI summary | Exa API key for news search — [exa.ai](https://exa.ai). |
+| `ALPHA_API` | For AI summary | Alpha Vantage key for historical price data — [alphavantage.co](https://www.alphavantage.co/support/#api-key). |
+| `CMC_API` | For AI summary | CoinMarketCap key for the Fear & Greed index — [coinmarketcap.com/api](https://coinmarketcap.com/api/). |
+| `CORS_ORIGINS` | No | Comma-separated allowed frontend origins. Defaults to `*` (all). Set to your deployed frontend URL in production, e.g. `https://myapp.replit.app`. |
 
-```env
-# Database
-DATABASE_URL=sqlite:///./crypto_portfolio.db
+### Frontend — `frontend/.env`
 
-# API Keys
-EXA_API = Your EXA_API
-HF_TOKEN = Your Hugging Face access token
-HF_MODEL = huggingface/meta-llama/Llama-3.1-8B-Instruct
-ALPHA_API = Your Alpha API
-CMC_API = Your CMC API
-SECRET = Your Secret Key
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `VITE_API_BASE_URL` | No | Backend URL. Defaults to `http://localhost:8000`. Set to your deployed backend URL in production. |
+| `VITE_SUPABASE_URL` | No | Supabase project URL. Only needed for cloud chat/portfolio persistence. |
+| `VITE_SUPABASE_ANON_KEY` | No | Supabase anonymous key. Only needed alongside `VITE_SUPABASE_URL`. |
 
-# Application Settings
-DEBUG=False
-SECRET_KEY=your-secret-key-here
-CORS_ORIGINS=http://localhost:3000,https://yourfrontend.com
+---
+
+## Production deployment
+
+The backend serves the built React frontend as a single-page application when `frontend/dist/` exists:
+
+```bash
+# 1. Build the frontend
+cd frontend && npm run build && cd ..
+
+# 2. Start the backend (serves both API and frontend)
+uvicorn app.main:app --host 0.0.0.0 --port 5000
 ```
 
-### API Rate Limits
-- CoinGecko: 50 requests/minute (free tier)
-- News API: 1000 requests/day (free tier)
-- Implement caching for better performance
+Before going live:
+
+1. Set `SECRET` to a strong random value.
+2. Set `CORS_ORIGINS` to your frontend domain.
+3. Set all AI API keys you want to enable.
+
+On **Replit**, set these in the **Secrets** tab (the padlock icon). The app is pre-configured to build and deploy with a single click via the **Deploy** button.
 
 ---
 
-## 🤝 Contributing
+## API overview
 
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `POST` | `/register` | — | Create a new user account |
+| `POST` | `/token` | — | Log in and receive a JWT |
+| `GET` | `/users/me` | Bearer | Current user profile |
+| `GET` | `/portfolio` | Bearer | List portfolio entries with live P/L |
+| `POST` | `/portfolio/add` | Bearer | Add a holding |
+| `GET` | `/portfolio/{id}` | Bearer | Single entry with live price |
+| `DELETE` | `/portfolio/{id}` | Bearer | Remove a holding |
+| `POST` | `/summary/` | Bearer | Run AI multi-agent market summary |
 
-We welcome contributions! Please follow these steps:
-
-1. **Fork** the repository
-2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
-3. **Commit** your changes (`git commit -m 'Add amazing feature'`)
-4. **Push** to the branch (`git push origin feature/amazing-feature`)
-5. **Open** a Pull Request
-
-### Development Guidelines
-- Follow PEP 8 style guide
-- Add tests for new features
-- Update documentation as needed
-- Use type hints for better code clarity
+Full interactive docs at `/docs` (Swagger) and `/redoc`.
 
 ---
 
-## 📄 License
+## Password requirements
 
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
-
----
-
-## 👨‍💻 Author & Support
-
-**Created by**: [Aman](https://github.com/TheNucleya02)
-
-### Get Support
-- 📧 **Email**: kr.amanjha02@gmail.com
-- 🐛 **Issues**: [GitHub Issues](https://github.com/TheNucleya02/crypto-assistant-backend/issues)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/TheNucleya02/crypto-assistant-backend/discussions)
+User passwords must be at least 8 characters and include an uppercase letter, a lowercase letter, a digit, and a special character.
 
 ---
 
-## 🙏 Acknowledgments
+## License
 
-- [CoinGecko](https://coingecko.com) for reliable crypto data
-- [FastAPI](https://fastapi.tiangolo.com/) for the excellent framework
-- [SQLAlchemy](https://sqlalchemy.org/) for robust ORM capabilities
-- The open-source community for inspiration and tools
-
----
-
-## 📊 Project Stats
-
-![GitHub stars](https://img.shields.io/github/stars/TheNucleya02/crypto-assistant-backend)
-![GitHub forks](https://img.shields.io/github/forks/TheNucleya02/crypto-assistant-backend)
-![GitHub issues](https://img.shields.io/github/issues/TheNucleya02/crypto-assistant-backend)
-![GitHub license](https://img.shields.io/github/license/TheNucleya02/crypto-assistant-backend)
-
-**Made with ❤️ for the crypto community**
+MIT — see [LICENSE](LICENSE).
