@@ -132,15 +132,18 @@ export async function createThread(title: string): Promise<ChatThread> {
 }
 
 export async function deleteThread(id: string): Promise<void> {
-  await apiFetch(`/chat/threads/${id}`, { method: "DELETE" });
+  const numericId = parseInt(id, 10);
+  await apiFetch(`/chat/threads/${numericId}`, { method: "DELETE" });
 }
 
 export async function resetThread(id: string, title: string): Promise<void> {
-  await apiFetch(`/chat/threads/${id}/clear`, { method: "POST", body: JSON.stringify({ message: title }) });
+  const numericId = parseInt(id, 10);
+  await apiFetch(`/chat/threads/${numericId}/clear`, { method: "POST", body: JSON.stringify({ message: title }) });
 }
 
 export async function fetchMessages(threadId: string): Promise<ChatMessage[]> {
-  const data = await apiFetch<Array<ChatMessage>>(`/chat/threads/${threadId}/messages`);
+  const numericId = parseInt(threadId, 10);
+  const data = await apiFetch<Array<ChatMessage>>(`/chat/threads/${numericId}/messages`);
   return data.map((m) => ({
     ...m,
     id: String(m.id),
@@ -152,7 +155,8 @@ export async function sendChatMessage(
   threadId: string,
   message: string
 ): Promise<{ response: string; thread_id: number; message_id: number }> {
-  return apiFetch(`/chat/threads/${threadId}/messages`, {
+  const numericId = parseInt(threadId, 10);
+  return apiFetch(`/chat/threads/${numericId}/messages`, {
     method: "POST",
     body: JSON.stringify({ message }),
   });
